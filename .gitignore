@@ -1,0 +1,28 @@
+node_modules
+.next
+out
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+
+# Configuração local e credenciais
+.env*
+.npmrc
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+service-account*.json
+
+# Arquivos locais e relatórios gerados
+*.log
+*.tmp
+*.swp
+*~
+.vscode/
+.idea/
+.vercel/
+coverage/
+test-results/
+playwright-report/
