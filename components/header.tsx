@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { Suspense, useState, type ReactNode } from 'react';
 import { Wordmark } from './wordmark';
-import { InformationDialog } from './information-dialog';
+import { InformationLink } from './information-link';
 import { SearchPanel } from './search-panel';
 import { FavoritesPanel } from './favorites-panel';
 import { CartDrawer } from './cart-drawer';
@@ -74,7 +74,7 @@ export function Header() {
                     <Suspense><NavLinks close /></Suspense>
                   </nav>
                   <div className="menu-information"><p className="menu-label">Sobre a experiência</p>
-                    <InformationDialog topic="about" presentation="disclosure" /><InformationDialog topic="sizes" presentation="disclosure" />
+                    <Dialog.Close asChild><InformationLink topic="about" className="information-link" /></Dialog.Close><Dialog.Close asChild><InformationLink topic="sizes" className="information-link" /></Dialog.Close>
                     <p className="muted">Loja conceitual. A compra é simulada.</p>
                   </div>
                 </Dialog.Content>

@@ -3,7 +3,7 @@
 import { ArrowUp, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useRef } from 'react';
-import { InformationDialog } from './information-dialog';
+import { InformationLink } from './information-link';
 import { Wordmark } from './wordmark';
 
 export function Footer() {
@@ -12,9 +12,7 @@ export function Footer() {
     const desktop = window.matchMedia('(min-width: 768px)');
     const arrangeGroups = () => {
       navigation.current?.querySelectorAll<HTMLDetailsElement>('details').forEach((group) => {
-        // Native disclosures remain usable without JS. Preserve an open dialog's
-        // trigger when crossing into the compact layout.
-        group.open = desktop.matches || Boolean(group.querySelector('[aria-expanded="true"]'));
+        group.open = desktop.matches;
         const summary = group.querySelector('summary');
         if (summary) {
           summary.tabIndex = desktop.matches ? -1 : 0;
@@ -54,16 +52,16 @@ export function Footer() {
             <details className="footer-disclosure" open>
               <summary onClick={keepDesktopOpen}><h2>Atendimento</h2><Plus size={18} aria-hidden="true" /></summary>
               <div className="footer-group-links">
-                <InformationDialog topic="faq" /><InformationDialog topic="shipping" />
-                <InformationDialog topic="returns" /><InformationDialog topic="sizes" />
+                <InformationLink topic="faq" /><InformationLink topic="shipping" />
+                <InformationLink topic="returns" /><InformationLink topic="sizes" />
               </div>
             </details>
           </nav>
           <nav aria-label="Institucional" className="footer-nav-group footer-nav-short">
-            <h2>Institucional</h2><InformationDialog topic="about" />
+            <h2>Institucional</h2><InformationLink topic="about" />
           </nav>
           <nav aria-label="Conecte-se" className="footer-nav-group footer-nav-short">
-            <h2>Conecte-se</h2><InformationDialog topic="contact" />
+            <h2>Conecte-se</h2><InformationLink topic="contact" />
           </nav>
         </div>
       </div>
@@ -71,7 +69,7 @@ export function Footer() {
         <div className="shell">
           <div className="footer-legal-row">
             <small>© {new Date().getFullYear()} ÓCULOS Eyewear</small>
-            <nav aria-label="Informações legais"><InformationDialog topic="privacy" /><InformationDialog topic="terms" /></nav>
+            <nav aria-label="Informações legais"><InformationLink topic="privacy" /><InformationLink topic="terms" /></nav>
             <button type="button" className="back-to-top" onClick={() => {
               window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
               document.querySelector<HTMLAnchorElement>('.site-header .logo')?.focus({ preventScroll: true });

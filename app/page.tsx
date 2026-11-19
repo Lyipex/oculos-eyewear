@@ -7,12 +7,28 @@ import { products } from '@/lib/products';
 import { HomeReveals } from '@/components/home-reveals';
 import { Benefits } from '@/components/benefits';
 import { ProductCard } from '@/components/product-card';
+import { ReviewMetrics } from '@/components/review-metrics';
 import { ProductPhoto } from '@/components/product-photo';
 
 const reviews = [
-  'Uma armação discreta que combina com tudo.',
-  'O desenho é leve e fácil de usar no dia a dia.',
-  'Gostei de comparar as cores antes de escolher.',
+  {
+    author: 'Marina',
+    model: 'Aurora',
+    rating: 5,
+    quote: 'Fiquei na dúvida entre o preto e o tartaruga. Fui de tartaruga e gostei porque aparece na medida certa, sem chamar muita atenção.',
+  },
+  {
+    author: 'Rafael',
+    model: 'Atelier',
+    rating: 5,
+    quote: 'Uso óculos o dia inteiro no trabalho. O que mais gostei nesse foi a leveza. No fim da tarde, nem lembrava que estava com ele.',
+  },
+  {
+    author: 'Beatriz',
+    model: 'Alma',
+    rating: 4,
+    quote: 'Achei que a armação seria um pouco menor. A foto no rosto ajudou a entender melhor o tamanho, e acabei gostando do formato.',
+  },
 ];
 
 export const metadata: Metadata = canonical('/');
@@ -45,10 +61,23 @@ export default function Home() {
         </div>
         <div className="grid">{products.slice(0, 4).map((product) => <ProductCard key={product.slug} product={product} />)}</div>
       </section>
-      <section className="review-band" data-reveal>
-        <div className="shell section reviews">
-          <div><h2>O que nossos clientes diriam</h2><p className="muted">Depoimentos fictícios</p></div>
-          {reviews.map((review) => <blockquote key={review}><span aria-label="Cinco estrelas ilustrativas">★★★★★</span><p>“{review}”</p></blockquote>)}
+      <section className="review-band" aria-labelledby="reviews-title" aria-describedby="reviews-note">
+        <div className="shell section review-content">
+          <div className="reviews">
+            <div>
+              <h2 id="reviews-title">Impressões de quem usaria</h2>
+              <p id="reviews-note" className="muted">Avaliações fictícias para demonstração.</p>
+            </div>
+            {reviews.map(({ author, model, rating, quote }) => (
+              <figure className="review" data-reveal key={model}>
+                <span className="review-stars" aria-hidden="true">{'★'.repeat(rating)}{'☆'.repeat(5 - rating)}</span>
+                <span className="sr-only">{rating} de 5 estrelas</span>
+                <blockquote><p>“{quote}”</p></blockquote>
+                <figcaption><strong>{author}</strong> <span>· {model}</span></figcaption>
+              </figure>
+            ))}
+          </div>
+          <ReviewMetrics />
         </div>
       </section>
       <section className="shell section" data-reveal>
