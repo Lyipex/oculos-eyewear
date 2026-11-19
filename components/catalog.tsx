@@ -4,10 +4,10 @@ import { SlidersHorizontal } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { catalogHref, catalogParams, maxPrice, minPrice } from '@/lib/catalog-query';
+import { matchesProductQuery } from '@/lib/product-search';
 import { products } from '@/lib/products';
 import { ProductCard } from './product-card';
 
-const normalize = (value: string) => value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
 const sorting = {
   destaque: () => 0,
   menor: (a: number, b: number) => a - b,
@@ -35,7 +35,7 @@ export function Catalog({ initialQuery }: { initialQuery: string }) {
   const visibleProducts = products
     .filter((product) => (category === 'Todos' || product.category === category) && product.price <= max
       && (!onlyRecent || product.recent)
-      && (!query || normalize(`${product.name} óculos de ${product.category}`).includes(normalize(query))))
+      && (!query || matchesProductQuery(product, query)))
     .sort((a, b) => sort === 'nome' ? a.name.localeCompare(b.name, 'pt-BR') : sorting[sort as keyof typeof sorting](a.price, b.price));
 
   return (

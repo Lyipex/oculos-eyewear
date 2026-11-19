@@ -8,9 +8,10 @@ Marca fictícia criada para portfólio. Não existem transações comerciais rea
 
 ## Experiência demonstrada
 
-- Home com vitrine, busca e navegação por categoria.
-- Catálogo com filtros, ordenação e favoritos locais.
-- Página de produto com cores, tamanhos, galeria e simulação de frete. A vista no rosto usa uma imagem fictícia na cor de referência.
+- Home com vitrine, painel de busca com resultados locais e navegação por categoria.
+- Catálogo com filtros, ordenação e favoritos locais por produto/cor; popover no desktop/tablet e sheet no mobile, com migração de registros antigos sem cor.
+- Página de produto com cores, tamanhos, galeria e simulação de frete. A vista no rosto aparece somente nas cores com retrato fictício correspondente; as demais oferecem Frente e Em ângulo.
+- Header com navegação acessível e rodapé com informações contextuais da demonstração.
 - Carrinho local com quantidades, cupom de demonstração e checkout simulado.
 
 ## Organização

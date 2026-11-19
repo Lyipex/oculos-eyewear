@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { products } from '@/lib/products';
+import { HomeReveals } from '@/components/home-reveals';
 import { Benefits } from '@/components/benefits';
 import { ProductCard } from '@/components/product-card';
 import { ProductPhoto } from '@/components/product-photo';
@@ -19,6 +20,7 @@ export const metadata: Metadata = canonical('/');
 export default function Home() {
   return (
     <>
+      <HomeReveals />
       <section className="hero">
         <div className="hero-media">
           <Image src="/hero-editorial.png" alt="Dois personagens fictícios usam óculos de sol, em uma campanha editorial" fill sizes="100vw" preload />
@@ -36,20 +38,20 @@ export default function Home() {
         </div>
       </section>
       <Benefits />
-      <section className="shell section highlights">
+      <section className="shell section highlights" data-reveal>
         <div className="section-heading">
           <h2>Destaques da coleção</h2>
           <Link className="text-link" href="/produtos">Ver todos os produtos <ArrowRight size={16} /></Link>
         </div>
         <div className="grid">{products.slice(0, 4).map((product) => <ProductCard key={product.slug} product={product} />)}</div>
       </section>
-      <section className="review-band">
+      <section className="review-band" data-reveal>
         <div className="shell section reviews">
           <div><h2>O que nossos clientes diriam</h2><p className="muted">Depoimentos fictícios</p></div>
           {reviews.map((review) => <blockquote key={review}><span aria-label="Cinco estrelas ilustrativas">★★★★★</span><p>“{review}”</p></blockquote>)}
         </div>
       </section>
-      <section className="shell section">
+      <section className="shell section" data-reveal>
         <div className="section-heading"><h2>Explore por categoria</h2></div>
         <div className="categories">
           {(['Sol', 'Grau'] as const).map((category) => {
@@ -63,7 +65,7 @@ export default function Home() {
           })}
         </div>
       </section>
-      <section className="story"><div className="shell">
+      <section className="story" data-reveal><div className="shell">
         <h2>Menos excesso. <em>Mais você.</em></h2>
         <p>Armações essenciais para o seu jeito de ver.</p>
         <Link className="button outline" href="/produtos">Conhecer a coleção <ArrowRight size={17} /></Link>

@@ -1,9 +1,8 @@
 'use client';
 
-import { Heart } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import { useFavorites } from '@/lib/favorites';
+import { FavoriteButton } from './favorite-button';
 import { frameTones, money, type Product } from '@/lib/products';
 import { ProductPhoto } from './product-photo';
 import { Rating } from './rating';
@@ -13,8 +12,6 @@ export function ProductCard({ product, returnQuery, heading: Heading = 'h3' }: {
   returnQuery?: string;
   heading?: 'h2' | 'h3';
 }) {
-  const saved = useFavorites((state) => state.slugs.includes(product.slug));
-  const toggle = useFavorites((state) => state.toggle);
   const [color, setColor] = useState(product.colors[0]);
   const path = `/produto/${product.slug}`;
   const params = new URLSearchParams();
@@ -40,10 +37,7 @@ export function ProductCard({ product, returnQuery, heading: Heading = 'h3' }: {
           </button>
         ))}
       </div>
-      <button type="button" className="icon-button favorite-button" aria-label={`Favoritar ${product.name}`}
-        aria-pressed={saved} onClick={() => toggle(product.slug)}>
-        <Heart size={19} fill={saved ? 'currentColor' : 'none'} aria-hidden="true" />
-      </button>
+      <FavoriteButton product={product} color={color} />
     </article>
   );
 }

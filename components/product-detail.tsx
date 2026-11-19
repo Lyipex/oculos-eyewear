@@ -1,12 +1,13 @@
 'use client';
 
-import { ArrowLeft, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCart } from '@/lib/cart';
-import { frameTones, money, type Product } from '@/lib/products';
+import { availableProductViews, resolveProductView, frameTones, money, type Product, type ProductView } from '@/lib/products';
 import { postalCode } from '@/lib/shipping';
-import { ProductPhoto, productViews } from './product-photo';
+import { GalleryPhoto } from './gallery-photo';
+import { FavoriteButton } from './favorite-button';
 import { Rating } from './rating';
 
 export function ProductDetail({ product, initialColor, returnHref, categoryHref }: {
@@ -20,9 +21,20 @@ export function ProductDetail({ product, initialColor, returnHref, categoryHref 
   const [cep, setCep] = useState('');
   const [shipping, setShipping] = useState('');
   const [added, setAdded] = useState(0);
-  const [viewIndex, setViewIndex] = useState(0);
-  const view = productViews[viewIndex];
-  const moveView = (offset: number) => setViewIndex((index) => (index + offset + productViews.length) % productViews.length);
+  const [confirmed, setConfirmed] = useState(false);
+  useEffect(() => {
+    if (!added) return;
+    const timer = window.setTimeout(() => setConfirmed(false), 1800);
+    return () => window.clearTimeout(timer);
+  }, [added, color, size]);
+  const [selectedView, setSelectedView] = useState<ProductView>('frente');
+  const views = availableProductViews(product, color);
+  const viewId = resolveProductView(product, color, selectedView);
+  const view = views.find(({ id }) => id === viewId)!;
+  const moveView = (offset: number) => setSelectedView((current) => {
+    const index = views.findIndex(({ id }) => id === resolveProductView(product, color, current));
+    return views[(index + offset + views.length) % views.length].id;
+  });
   const add = useCart((cart) => cart.add);
 
   return (
@@ -37,18 +49,21 @@ export function ProductDetail({ product, initialColor, returnHref, categoryHref 
       </nav>
       <div className="pdp">
         <div>
-          <div className="pdp-image" role="group" aria-label="Galeria do produto">
-            <ProductPhoto product={product} color={color} angle={view.id} sizes="(max-width: 767px) 92vw, 55vw" />
+          <div className="pdp-image" role="group" aria-label="Galeria do produto" tabIndex={0} onKeyDown={(event) => {
+            if (event.target !== event.currentTarget) return;
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); moveView(event.key === 'ArrowLeft' ? -1 : 1); }
+          }}>
+            <GalleryPhoto key={`${product.slug}:${color}`} product={product} color={color} angle={view.id} />
             <button type="button" className="icon-button gallery-prev" aria-label="Imagem anterior" onClick={() => moveView(-1)}><ChevronLeft size={20} /></button>
             <button type="button" className="icon-button gallery-next" aria-label="Próxima imagem" onClick={() => moveView(1)}><ChevronRight size={20} /></button>
-            <p className="sr-only" role="status">{view.label}</p>
+            <p className="sr-only" role="status">{view.label} · {color}</p>
           </div>
           <div className="thumbs">
-            {productViews.map(({ id, label }, index) => (
-              <button key={id} type="button" aria-pressed={view.id === id} onClick={() => setViewIndex(index)}>{label}</button>
+            {views.map(({ id, label }) => (
+              <button key={id} type="button" aria-pressed={view.id === id} onClick={() => setSelectedView(id)}>{label}</button>
             ))}
           </div>
-          {view.id === 'rosto' && <p className="muted gallery-caption">Modelo fictício · Cor de referência: {product.colors[0]}</p>}
+          <p className="muted gallery-caption">{view.id === 'rosto' ? `Modelo fictício · Cor selecionada: ${color}` : ' '}</p>
         </div>
         <div className="pdp-info">
           <p className="eyebrow">ÓCULOS DE {product.category.toUpperCase()}</p>
@@ -61,7 +76,7 @@ export function ProductDetail({ product, initialColor, returnHref, categoryHref 
             <div className="choices color-choices">
               {product.colors.map((option) => (
                 <button key={option} type="button" aria-label={option} title={option} aria-pressed={color === option}
-                  onClick={() => { setColor(option); setAdded(0); if (view.id === 'rosto') setViewIndex(0); }}><span style={{ backgroundColor: frameTones[option] }} /></button>
+                  onClick={() => { setSelectedView(availableProductViews(product, option).some(({ id }) => id === 'rosto') ? view.id : 'frente'); setColor(option); setAdded(0); setConfirmed(false); }}><span style={{ backgroundColor: frameTones[option] }} /></button>
               ))}
             </div>
           </fieldset>
@@ -70,15 +85,17 @@ export function ProductDetail({ product, initialColor, returnHref, categoryHref 
             <div className="choices">
               {product.sizes.map((option) => (
                 <button key={option} type="button" aria-pressed={size === option}
-                  onClick={() => { setSize(option); setAdded(0); }}>{option}</button>
+                  onClick={() => { setSize(option); setAdded(0); setConfirmed(false); }}>{option}</button>
               ))}
             </div>
           </fieldset>
-          <button type="button" className="button primary full" onClick={() => {
+          <button type="button" className="button primary full add-to-cart" data-added={confirmed} onClick={() => {
             add({ slug: product.slug, name: product.name, price: product.price, color, size, quantity: 1 });
             setAdded((count) => count + 1);
-          }}><ShoppingBag size={19} aria-hidden="true" /> Adicionar ao carrinho</button>
-          <p role="status">{added > 0 ? `Adicionado ao carrinho · ${added} nesta seleção.` : ''}</p>
+            setConfirmed(true);
+          }}>{confirmed ? <Check size={19} aria-hidden="true" /> : <ShoppingBag size={19} aria-hidden="true" />} {confirmed ? 'Adicionado · Adicionar mais' : 'Adicionar ao carrinho'}</button>
+          <p className="add-status" role="status">{added > 0 ? `Adicionado ao carrinho · ${added} nesta seleção.` : ''}</p>
+          <FavoriteButton product={product} color={color} className="button outline full detail-favorite" showLabel />
           <form className="shipping" onSubmit={(event) => {
             event.preventDefault();
             const result = postalCode.safeParse(cep);

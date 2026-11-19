@@ -1,13 +1,14 @@
 'use client';
 
 import * as Dialog from '@radix-ui/react-dialog';
-import { Grid2X2, Heart, House, Menu, Search, UserRound, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Grid2X2, House, Menu, UserRound, X } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { Suspense, useState, type ReactNode } from 'react';
-import { useFavorites } from '@/lib/favorites';
-import { products } from '@/lib/products';
 import { Wordmark } from './wordmark';
+import { InformationDialog } from './information-dialog';
+import { SearchPanel } from './search-panel';
+import { FavoritesPanel } from './favorites-panel';
 import { CartDrawer } from './cart-drawer';
 
 const navLinks = [
@@ -50,43 +51,12 @@ function HeaderDialog({ label, icon, title, children }: {
   );
 }
 
-function SearchDialog() {
-  const router = useRouter();
-  const [open, setOpen] = useState(false);
-  return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger className="icon-button" aria-label="Buscar produtos"><Search size={21} /></Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay className="overlay" />
-        <Dialog.Content className="header-dialog" aria-describedby={undefined}>
-          <div className="drawer-head">
-            <Dialog.Title>Buscar produtos</Dialog.Title>
-            <Dialog.Close className="icon-button" aria-label="Fechar busca"><X size={22} /></Dialog.Close>
-          </div>
-          <form className="inline-form" onSubmit={(event) => {
-            event.preventDefault();
-            const query = String(new FormData(event.currentTarget).get('q') ?? '').trim();
-            router.push(query ? `/produtos?${new URLSearchParams({ q: query })}` : '/produtos');
-            setOpen(false);
-          }}>
-            <input name="q" aria-label="Nome ou tipo de óculos" placeholder="Nome ou tipo de óculos" maxLength={80} />
-            <button className="button primary" type="submit">Buscar</button>
-          </form>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
-  );
-}
-
 export function Header() {
   const path = usePathname();
-  const saved = useFavorites((state) => state.slugs);
-  const selected = products.filter(({ slug }) => saved.includes(slug));
+  const [activePanel, setActivePanel] = useState<'search' | 'favorites' | null>(null);
   return (
     <>
-      <div className="announcement">
-        <span>Frete grátis simulado</span><span>Parcelamento ilustrativo</span><span>Troca fácil ilustrativa</span>
-      </div>
+      <Announcement />
       <header className="site-header">
         <div className="shell header">
           <div className="mobile-menu">
@@ -99,9 +69,14 @@ export function Header() {
                     <Dialog.Title>Menu</Dialog.Title>
                     <Dialog.Close className="icon-button" aria-label="Fechar menu"><X size={22} aria-hidden="true" /></Dialog.Close>
                   </div>
+                  <p className="menu-label">Explore a coleção</p>
                   <nav className="menu-links" aria-label="Categorias">
                     <Suspense><NavLinks close /></Suspense>
                   </nav>
+                  <div className="menu-information"><p className="menu-label">Sobre a experiência</p>
+                    <InformationDialog topic="about" presentation="disclosure" /><InformationDialog topic="sizes" presentation="disclosure" />
+                    <p className="muted">Loja conceitual. A compra é simulada.</p>
+                  </div>
                 </Dialog.Content>
               </Dialog.Portal>
             </Dialog.Root>
@@ -111,16 +86,8 @@ export function Header() {
             <Suspense fallback={navLinks.map(({ href, label }) => <Link key={href} href={href}>{label}</Link>)}><NavLinks /></Suspense>
           </nav>
           <div className="header-actions">
-            <SearchDialog />
-            <HeaderDialog label="Favoritos" title="Seus favoritos" icon={<Heart size={21} />}>
-              {selected.length ? (
-                <ul className="dialog-links">{selected.map((product) => (
-                  <li key={product.slug}>
-                    <Dialog.Close asChild><Link href={`/produto/${product.slug}`}>{product.name}</Link></Dialog.Close>
-                  </li>
-                ))}</ul>
-              ) : <p>Use o coração na vitrine para guardar seus modelos favoritos.</p>}
-            </HeaderDialog>
+            <SearchPanel open={activePanel === 'search'} onOpenChange={(open) => setActivePanel((current) => open ? 'search' : current === 'search' ? null : current)} />
+            <FavoritesPanel open={activePanel === 'favorites'} onOpenChange={(open) => setActivePanel((current) => open ? 'favorites' : current === 'favorites' ? null : current)} />
             <div className="desktop-account"><AccountDemo /></div>
             <CartDrawer />
           </div>
@@ -138,7 +105,22 @@ export function Header() {
 function AccountDemo({ withLabel = false }: { withLabel?: boolean }) {
   return (
     <HeaderDialog label="Conta demonstrativa" title="Minha conta" icon={<><UserRound size={21} />{withLabel && <span>Conta</span>}</>}>
-      <p>A loja é conceitual. Seus favoritos e seu carrinho ficam neste navegador.</p>
+      <p>O acesso à conta não está disponível nesta versão conceitual. Seus favoritos e seu carrinho ficam neste navegador, sem necessidade de cadastro.</p>
     </HeaderDialog>
+  );
+}
+
+const announcements = ['Frete grátis simulado', 'Parcelamento ilustrativo', 'Troca fácil ilustrativa'];
+
+function Announcement() {
+  const [index, setIndex] = useState(0);
+  return (
+    <div className="announcement" role="region" aria-label="Condições demonstrativas">
+      <button type="button" aria-label="Mensagem anterior" onClick={() => setIndex((index + announcements.length - 1) % announcements.length)}><ChevronLeft size={14} aria-hidden="true" /></button>
+      <div className="announcement-messages" aria-live="polite">
+        {announcements.map((message, position) => <span key={message} data-current={position === index}>{message}</span>)}
+      </div>
+      <button type="button" aria-label="Próxima mensagem" onClick={() => setIndex((index + 1) % announcements.length)}><ChevronRight size={14} aria-hidden="true" /></button>
+    </div>
   );
 }
