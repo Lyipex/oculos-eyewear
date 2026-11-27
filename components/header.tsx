@@ -1,10 +1,11 @@
 'use client';
 
 import * as Dialog from '@radix-ui/react-dialog';
+import { setNonce } from 'get-nonce';
 import { ChevronLeft, ChevronRight, Grid2X2, House, Menu, UserRound, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { Suspense, useState, type ReactNode } from 'react';
+import { Suspense, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Wordmark } from './wordmark';
 import { InformationLink } from './information-link';
 import { SearchPanel } from './search-panel';
@@ -54,6 +55,38 @@ function HeaderDialog({ label, icon, title, children }: {
 export function Header() {
   const path = usePathname();
   const [activePanel, setActivePanel] = useState<'search' | 'favorites' | null>(null);
+  const mobileNav = useRef<HTMLElement>(null);
+
+  useLayoutEffect(() => {
+    // Radix inserts the scroll-lock stylesheet into the current document.
+    setNonce(document.querySelector<HTMLScriptElement>('script[nonce]')?.nonce ?? '');
+  }, []);
+
+  useEffect(() => {
+    let frame = 0;
+    function keepFocusVisible(event: FocusEvent) {
+      const nav = mobileNav.current;
+      const target = event.target;
+      if (!(target instanceof HTMLElement) || !target.matches(':focus-visible')
+        || !nav?.getClientRects().length || nav.contains(target) || target.closest('[role="dialog"]')) return;
+
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        if (document.activeElement !== target) return;
+        const bounds = target.getBoundingClientRect();
+        const overlap = bounds.bottom - nav.getBoundingClientRect().top;
+        if (overlap > -8) window.scrollBy({ top: overlap + 8, behavior: 'instant' });
+        else if (bounds.top < 0) window.scrollBy({ top: bounds.top - 8, behavior: 'instant' });
+      });
+    }
+
+    document.addEventListener('focusin', keepFocusVisible);
+    return () => {
+      cancelAnimationFrame(frame);
+      document.removeEventListener('focusin', keepFocusVisible);
+    };
+  }, []);
+
   return (
     <>
       <Announcement />
@@ -93,7 +126,7 @@ export function Header() {
           </div>
         </div>
       </header>
-      <nav className="mobile-nav" aria-label="Atalhos da loja">
+      <nav ref={mobileNav} className="mobile-nav" aria-label="Atalhos da loja">
         <Link href="/" aria-current={path === '/' ? 'page' : undefined}><House size={20} />Início</Link>
         <Link href="/produtos" aria-current={path.startsWith('/produto') ? 'page' : undefined}><Grid2X2 size={20} />Produtos</Link>
         <AccountDemo withLabel />

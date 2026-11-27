@@ -69,21 +69,24 @@ try {
     await openSearch();
     await page.locator('.search-chips').getByRole('link', { name: 'Óculos de sol', exact: true }).click();
     await page.waitForURL('**/produtos?categoria=Sol');
+    await page.getByRole('heading', { level: 1, name: 'Óculos de sol', exact: true }).waitFor();
     assert.equal(await page.locator('.product-card').count(), 3);
     await openSearch();
     await input.fill('grau');
     await input.press('Enter');
     await page.waitForURL('**/produtos?q=grau');
+    await page.getByRole('heading', { level: 1, name: /Resultados para.*grau/ }).waitFor();
     assert.equal(await page.locator('.product-card').count(), 3);
     await openSearch();
     await input.fill('Aurora');
     await page.getByRole('link', { name: 'Ver Aurora, Vinho', exact: true }).click();
     await page.waitForURL('**/produto/aurora?cor=Vinho');
     // Save two variants from the product page; their hearts must remain independent.
+    const detail = page.locator('.pdp-info');
     await page.getByRole('button', { name: 'Favoritar Aurora, Vinho', exact: true }).click();
-    await page.getByRole('button', { name: 'Preto', exact: true }).click();
+    await detail.getByRole('button', { name: 'Preto', exact: true }).click();
     await page.getByRole('button', { name: 'Favoritar Aurora, Preto', exact: true }).click();
-    await page.getByRole('button', { name: 'Vinho', exact: true }).click();
+    await detail.getByRole('button', { name: 'Vinho', exact: true }).click();
     assert.equal(await page.locator('.detail-favorite').getAttribute('aria-pressed'), 'true');
     await page.getByRole('button', { name: 'Favoritos', exact: true }).click();
     await page.waitForTimeout(350);
@@ -103,7 +106,8 @@ try {
     await page.screenshot({ path: `${output}/favorites-two-colors-${width}.png` });
     await dialog.getByRole('link', { name: 'Ver Aurora, Preto', exact: true }).click();
     await page.waitForURL('**/produto/aurora?cor=Preto');
-    assert.equal(await page.getByRole('button', { name: 'Preto', exact: true }).getAttribute('aria-pressed'), 'true');
+    await detail.getByRole('button', { name: 'Preto', exact: true, pressed: true }).waitFor();
+    assert.equal(await detail.getByRole('button', { name: 'Preto', exact: true }).getAttribute('aria-pressed'), 'true');
     await page.reload();
     assert.equal(await page.locator('.detail-favorite').getAttribute('aria-pressed'), 'true');
     await page.getByRole('button', { name: 'Favoritos', exact: true }).click();

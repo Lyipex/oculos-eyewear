@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { canonical } from '@/lib/seo';
+import { sharingMetadata, siteDescription, siteTitle } from '@/lib/seo';
 import { ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -31,7 +31,8 @@ const reviews = [
   },
 ];
 
-export const metadata: Metadata = canonical('/');
+const heroAlt = 'Dois personagens fictícios usam óculos de sol, em uma campanha editorial';
+export const metadata: Metadata = sharingMetadata('/', siteTitle, siteDescription, { path: '/hero-editorial.png', alt: heroAlt });
 
 export default function Home() {
   return (
@@ -39,7 +40,7 @@ export default function Home() {
       <HomeReveals />
       <section className="hero">
         <div className="hero-media">
-          <Image src="/hero-editorial.png" alt="Dois personagens fictícios usam óculos de sol, em uma campanha editorial" fill sizes="100vw" preload />
+          <Image src="/hero-editorial.png" alt={heroAlt} fill sizes="100vw" preload />
         </div>
         <div className="shell hero-inner">
           <div className="hero-copy">

@@ -1,14 +1,17 @@
 import type { Metadata } from 'next';
+import { connection } from 'next/server';
 import { Footer } from '@/components/footer';
 import { Header } from '@/components/header';
+import { siteDescription, siteTitle } from '@/lib/seo';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: { default: 'ÓCULOS Eyewear | Seu olhar, sua assinatura', template: '%s | ÓCULOS Eyewear' },
-  description: 'Explore uma coleção conceitual de armações de sol e de grau com design atemporal.',
+  title: { default: siteTitle, template: '%s | ÓCULOS Eyewear' },
+  description: siteDescription,
 };
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default async function Layout({ children }: { children: React.ReactNode }) {
+  await connection(); // Next.js applies the CSP nonce when rendering each document.
   return (
     <html lang="pt-BR">
       <body>

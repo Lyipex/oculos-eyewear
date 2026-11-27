@@ -10,8 +10,11 @@ export type Item = {
   quantity: number;
 };
 
-const couponCode = 'FORMA10';
-export const normalizeCoupon = (value: string) => value.trim().toUpperCase();
+export const couponCode = 'OCULOS10';
+function normalizeCoupon(value: string) {
+  const code = value.trim().toUpperCase();
+  return code === 'FORMA10' ? couponCode : code;
+}
 export const keyOf = (item: Item) => `${item.slug}|${item.color}|${item.size}`;
 
 // Some os valores em centavos e arredonde o desconto uma única vez por carrinho.
@@ -63,7 +66,14 @@ export const useCart = create<Store>()(
       clearCoupon: () => set({ coupon: '' }),
     }),
     {
+      // Keep the original storage key so carts saved before the rebrand can migrate.
       name: 'forma-cart',
+      version: 1,
+      migrate: (persisted) => {
+        const cart = persisted as Pick<Store, 'items' | 'coupon'>;
+        const coupon = typeof cart?.coupon === 'string' && normalizeCoupon(cart.coupon) === couponCode ? couponCode : '';
+        return { ...cart, coupon };
+      },
       partialize: ({ items, coupon }) => ({ items, coupon }),
     },
   ),

@@ -4,7 +4,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { Minus, Plus, ShoppingBag, X } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import { keyOf, useCart } from '@/lib/cart';
+import { couponCode, keyOf, useCart } from '@/lib/cart';
 import { money, products } from '@/lib/products';
 import { ProductPhoto } from './product-photo';
 import { CartSummary } from './cart-summary';
@@ -59,11 +59,11 @@ export function CartDrawer() {
             {items.length > 0 && (
               <form className="coupon" onSubmit={(event) => {
                 event.preventDefault();
-                setMessage(applyCoupon(input) ? 'Cupom aplicado.' : 'Cupom inválido. Experimente FORMA10.');
+                setMessage(applyCoupon(input) ? 'Cupom aplicado.' : `Cupom inválido. Experimente ${couponCode}.`);
               }}>
                 <label htmlFor="coupon">Cupom demonstrativo</label>
                 <div>
-                  <input id="coupon" value={input} onChange={(event) => { setInput(event.target.value); setMessage(''); }} placeholder="Experimente FORMA10" required />
+                  <input id="coupon" value={input} onChange={(event) => { setInput(event.target.value); setMessage(''); }} placeholder={`Experimente ${couponCode}`} required />
                   <button type="submit">Aplicar</button>
               </div>
                 <p role="status">{message}</p>

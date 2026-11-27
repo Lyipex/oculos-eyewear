@@ -8,6 +8,9 @@ import { money } from '@/lib/products';
 import { postalCode } from '@/lib/shipping';
 import { CartSummary } from './cart-summary';
 
+// Zod's object validator can probe eval, which the document CSP blocks.
+z.config({ jitless: true });
+
 const schema = z.object({
   name: z.string().trim().min(2, 'Informe seu nome.'),
   email: z.email('Informe um e-mail válido.'),
@@ -16,10 +19,10 @@ const schema = z.object({
 });
 
 const fields = [
-  { name: 'name', label: 'Nome completo', autoComplete: 'name' },
-  { name: 'email', label: 'E-mail', autoComplete: 'email', type: 'email' },
-  { name: 'cep', label: 'CEP', autoComplete: 'postal-code', inputMode: 'numeric', placeholder: '00000-000' },
-  { name: 'address', label: 'Endereço', autoComplete: 'street-address' },
+  { name: 'name', label: 'Nome completo' },
+  { name: 'email', label: 'E-mail', type: 'email' },
+  { name: 'cep', label: 'CEP', inputMode: 'numeric', placeholder: '00000-000' },
+  { name: 'address', label: 'Endereço' },
 ] as const;
 
 export function Checkout() {
@@ -35,9 +38,9 @@ export function Checkout() {
         <p>Seu carrinho está vazio. <Link className="text-link" href="/produtos">Ver produtos</Link></p>
       ) : (
         <>
-          <p>Use dados fictícios para simular o pedido.</p>
+          <p>Use apenas dados fictícios. Evite inserir dados pessoais reais.</p>
           <div className="checkout-grid">
-            <form noValidate onSubmit={(event) => {
+            <form autoComplete="off" noValidate onSubmit={(event) => {
               event.preventDefault();
               const form = event.currentTarget;
               const parsed = schema.safeParse(Object.fromEntries(new FormData(form)));
@@ -51,15 +54,16 @@ export function Checkout() {
               setErrors({});
               setMessage('Simulação concluída.');
             }}>
-              <h2>Seus dados</h2>
+              <h2>Dados fictícios</h2>
               {fields.map(({ name, label, ...attributes }) => (
-                <label key={name}>{label}
-                  <input name={name} {...attributes} required aria-invalid={Boolean(errors[name])} aria-describedby={errors[name] ? `erro-${name}` : undefined} onChange={() => {
+                <div className="checkout-field" key={name}>
+                  <label htmlFor={`checkout-${name}`}>{label}</label>
+                  <input id={`checkout-${name}`} name={name} {...attributes} required aria-invalid={errors[name] ? true : undefined} aria-describedby={errors[name] ? `erro-${name}` : undefined} onChange={() => {
                     setErrors((previous) => ({ ...previous, [name]: undefined }));
                     setMessage('');
                   }} />
                   {errors[name] && <span className="field-error" id={`erro-${name}`}>{errors[name][0]}</span>}
-                </label>
+                </div>
               ))}
               <button type="submit" className="button primary full">Simular finalização</button>
               <p role="status">{message}</p>

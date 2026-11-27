@@ -19,7 +19,9 @@ Abra http://localhost:3000 para desenvolvimento. Use `npm start` após o build p
 
 ## SEO e URL de produção
 
-Defina `SITE_URL` com a origem pública definitiva antes do build (por exemplo, `SITE_URL=https://sua-loja.example npm run build`). Com essa configuração, a home, o catálogo e os produtos incluem URLs canônicas absolutas e aparecem no sitemap. As escolhas de filtro e cor ficam fora das URLs canônicas. O checkout mantém `noindex`. Em execução local sem `SITE_URL`, o sitemap fica vazio e o robots bloqueia rastreamento.
+Defina `SITE_URL` com a origem pública HTTPS definitiva no build e no servidor (por exemplo, `SITE_URL=https://sua-loja.example npm run build`). Essa configuração gera URLs canônicas absolutas, as imagens de Open Graph da home e dos produtos e as URLs do sitemap. As escolhas de filtro e cor ficam fora das URLs canônicas. O checkout mantém `noindex`. Sem `SITE_URL`, o sitemap fica vazio e o robots bloqueia o rastreamento.
+
+As páginas HTML são renderizadas por requisição para receber o nonce da CSP. Use hospedagem com runtime do Next.js e configure HSTS na hospedagem quando o domínio estiver servindo HTTPS definitivo.
 
 ## Estrutura e demonstração
 
@@ -31,7 +33,7 @@ Veja também a [documentação do projeto](docs/PROJETO.md).
 - `public/hero-editorial.png` contém a campanha gerada, com personagens fictícios.
 - `public/produtos/` contém imagens conceituais geradas para cada modelo, com vistas frontal e em ângulo de cada cor e um retrato ilustrativo da cor de referência, em uma pessoa fictícia. As imagens são representações do catálogo conceitual.
 
-Para testar o fluxo, procure por Aurora, marque o favorito e abra o modelo. Escolha uma variação, simule o frete com um CEP fictício e adicione ao carrinho. O cupom `FORMA10` aplica 10% na simulação e aparece no checkout. Preencha o checkout com dados de exemplo.
+Para testar o fluxo, procure por Aurora, marque o favorito e abra o modelo. Escolha uma variação, simule o frete com um CEP fictício e adicione ao carrinho. O cupom `OCULOS10` aplica 10% na simulação e aparece no checkout. Preencha o checkout apenas com dados fictícios.
 
 ## Conferência visual no VS Code
 

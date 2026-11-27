@@ -5,6 +5,16 @@ const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright')
 const browser = await chromium.launch({ headless: true, ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}) });
 const base = process.env.BASE_URL || 'http://localhost:3100';
 const output = process.env.QA_OUTPUT || '/tmp/eyewear-footer-qa';
+const information = {
+  'Perguntas frequentes': 'perguntas-frequentes',
+  'Frete e entregas': 'frete-e-entregas',
+  'Trocas e devoluções': 'trocas-e-devolucoes',
+  'Guia de tamanhos': 'guia-de-tamanhos',
+  'Sobre o projeto': 'sobre-o-projeto',
+  'Contato': 'contato',
+  'Privacidade': 'privacidade',
+  'Termos de uso': 'termos-de-uso',
+};
 await mkdir(output, { recursive: true });
 const results = [];
 try {
@@ -38,23 +48,25 @@ try {
       assert.equal(await collection.getAttribute('tabindex'), '-1');
       assert.ok(await footer.getByRole('link', { name: 'Óculos de grau', exact: true }).isVisible());
     }
-    // All destinations are real routes; informational controls preserve their existing dialogs.
     const expected = ['/produtos?categoria=Sol', '/produtos?categoria=Grau', '/produtos?colecao=novidades', '/produtos'];
-    assert.deepEqual(await footer.locator('.footer-group-links a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))), expected);
-    for (const topic of ['Perguntas frequentes', 'Frete e entregas', 'Trocas e devoluções', 'Guia de tamanhos', 'Sobre o projeto', 'Contato', 'Privacidade', 'Termos de uso']) {
-      const trigger = footer.getByRole('button', { name: topic, exact: true });
-      await trigger.click();
-      const dialog = page.getByRole('dialog');
-      assert.ok(await dialog.getByRole('heading', { name: topic, exact: true }).isVisible());
-      await page.waitForFunction(() => document.querySelector('.information-dialog')?.contains(document.activeElement));
-      await page.keyboard.press('Tab');
-      assert.ok(await dialog.evaluate((el) => el.contains(document.activeElement)));
-      await page.keyboard.press('Escape');
-      await dialog.waitFor({ state: 'detached' });
-      await page.waitForFunction((el) => document.activeElement === el, await trigger.elementHandle());
+    assert.deepEqual(await footer.locator('nav[aria-label="Coleção"] a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))), expected);
+    for (const [title, slug] of Object.entries(information)) {
+      const path = `/informacoes/${slug}`;
+      if (width < 768 && !await help.evaluate((el) => el.parentElement.open)) await help.click();
+      const link = footer.getByRole('link', { name: title, exact: true });
+      assert.equal(await link.getAttribute('href'), path);
+      await link.focus();
+      await page.keyboard.press('Enter');
+      await page.waitForURL(base + path);
+      const content = page.locator('main');
+      await content.getByRole('heading', { level: 1, name: title, exact: true }).waitFor();
+      assert.ok((await content.locator('article p').textContent()).trim());
+      await noOverflow();
+      await page.goBack();
+      await page.getByRole('heading', { level: 1, name: /Seu olhar/ }).waitFor();
     }
     await page.locator('.overlay').waitFor({ state: 'detached' });
-    if (width < 768) await help.click();
+    if (width < 768 && await help.evaluate((el) => el.parentElement.open)) await help.click();
     await footer.scrollIntoViewIfNeeded();
     await noOverflow();
     const size = await footer.boundingBox();
@@ -65,7 +77,7 @@ try {
     await page.evaluate(() => { if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); });
     await footer.screenshot({ path: `${output}/footer-${width}.png` });
     await page.keyboard.press('Tab');
-    const privacy = footer.getByRole('button', { name: 'Privacidade', exact: true });
+    const privacy = footer.getByRole('link', { name: 'Privacidade', exact: true });
     await privacy.focus();
     assert.equal(await privacy.evaluate((el) => getComputedStyle(el).outlineStyle), 'solid');
     assert.equal(await privacy.evaluate((el) => getComputedStyle(el).outlineColor), 'rgb(246, 241, 235)');
@@ -74,7 +86,7 @@ try {
     await footer.getByRole('button', { name: 'Voltar ao topo', exact: true }).click();
     assert.equal(await page.evaluate(() => scrollY), 0);
     assert.ok(await page.locator('.site-header .logo').evaluate((el) => document.activeElement === el));
-    // A breakpoint change keeps the same dialogs/links, and restores compact navigation.
+    // A breakpoint change keeps the links and restores compact navigation.
     if (width === 375) {
       await page.setViewportSize({ width: 768, height: 900 });
       await page.waitForFunction(() => document.querySelectorAll('.footer-disclosure[open]').length === 2);
@@ -84,12 +96,12 @@ try {
       await page.waitForFunction(() => document.querySelectorAll('.footer-disclosure[open]').length === 0);
     }
     assert.deepEqual(errors, []);
-    results.push({ width, height: Math.round(size.height), errors, checks: 'overflow, native disclosures, keyboard, focus, eight dialogs, links, safe space, reduced motion, back to top' });
+    results.push({ width, height: Math.round(size.height), errors, checks: 'overflow, native disclosures, keyboard, focus, eight information pages, links, safe space, reduced motion, back to top' });
     console.log(`Passed ${width}px`);
     await context.close();
   }
   const page = await browser.newPage();
-  for (const path of ['/produtos?categoria=Sol', '/produtos?categoria=Grau', '/produtos?colecao=novidades', '/produtos']) {
+  for (const path of ['/produtos?categoria=Sol', '/produtos?categoria=Grau', '/produtos?colecao=novidades', '/produtos', ...Object.values(information).map((slug) => `/informacoes/${slug}`)]) {
     const response = await page.request.get(base + path);
     assert.equal(response.status(), 200, path);
   }

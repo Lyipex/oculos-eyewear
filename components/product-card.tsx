@@ -7,10 +7,11 @@ import { frameTones, money, type Product } from '@/lib/products';
 import { ProductPhoto } from './product-photo';
 import { Rating } from './rating';
 
-export function ProductCard({ product, returnQuery, heading: Heading = 'h3' }: {
+export function ProductCard({ product, returnQuery, heading: Heading = 'h3', imageSizes }: {
   product: Product;
   returnQuery?: string;
   heading?: 'h2' | 'h3';
+  imageSizes?: string;
 }) {
   const [color, setColor] = useState(product.colors[0]);
   const path = `/produto/${product.slug}`;
@@ -22,7 +23,7 @@ export function ProductCard({ product, returnQuery, heading: Heading = 'h3' }: {
   return (
     <article className="product-card">
       <Link className="product-link" href={href}>
-        <div className="product-image"><ProductPhoto product={product} color={color} /></div>
+        <div className="product-image"><ProductPhoto product={product} color={color} sizes={imageSizes} /></div>
         <div className="product-meta">
           <Heading>{product.name}</Heading>
           <Rating value={product.rating} />
